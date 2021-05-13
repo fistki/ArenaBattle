@@ -3,6 +3,7 @@
 
 #include "ABCharacter.h"
 #include "ABAnimInstance.h"
+#include "DrawDebugHelpers.h"
 
 // Sets default values
 AABCharacter::AABCharacter()
@@ -42,7 +43,10 @@ AABCharacter::AABCharacter()
 	IsAttacking = false;
 
 	MaxCombo = 4;
-	AttackEndComboState();	// for initialize combo object 
+	AttackEndComboState();	// for initialize combo object
+
+	AttackRange = 200.0f;
+	AttackRadius = 50.0f;
 }
 
 // Called when the game starts or when spawned
@@ -111,7 +115,6 @@ void AABCharacter::Tick(float DeltaTime)
 		}
 		break;
 	}
-
 }
 
 void AABCharacter::PostInitializeComponents()
@@ -134,6 +137,22 @@ void AABCharacter::PostInitializeComponents()
 
 	ABAnim->OnAttackHitCheck.AddUObject(this, &AABCharacter::AttackCheck);
 }
+
+float AABCharacter::TakeDamage(float DamageAmount, struct FDamageEvent const& DamageEvent,
+	class AController* EventInstigator, AActor* DamageCauser)
+{
+	float FinalDamage = Super::TakeDamage(DamageAmount, DamageEvent, EventInstigator, DamageCauser);
+	ABLOG(Warning, TEXT("Actor : %s took Damage : %f"), *GetName(), FinalDamage);
+
+	if (FinalDamage > 0.0f)
+	{
+		ABAnim->SetDeadAnim();
+		SetActorEnableCollision(false);
+	}
+
+	return FinalDamage;
+}
+
 // Called to bind functionality to input
 void AABCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 {
@@ -269,12 +288,42 @@ void AABCharacter::AttackCheck()
 		FCollisionShape::MakeSphere(50.0f),
 		Params
 	);
+/*
+	* 현재 탐색 구체 설정과 똑같이 캡슐의 반지름을 50cm, 탐색 시작 위치에서 탐색 끝 위치로 향하는 벡터를 구한 후,
+	* 벡터의 중점 위치와 벡터 길이의 절반을 대입하면 우리가 원하는 크기의 캡슐 모양을 구할 수 있다.
+	* 캡슐은 상하로 서있는 모습을 가진다. 회전 행렬을 적용해 캡슐 방향을 캐릭터 시선 방향으로 눕힌 후 공격 범위에 맞게 길이를 설정한다.
+	* 캡슐이 캐릭터 시선 방향으로 누울려면, 캡슐의 상단으로 향하는 벡터(Z 벡터)가 캐릭터의 시선 방향과 일치한다는 것을 의미한다.
+	* 따라서 FRotationMatrix의 MakeFromZ 함수에 캐릭터의 시선 방향 벡터를 입력하면 필요한 회전 좌표축을 생성할 수 있다.
+*/
+
+#if ENABLE_DRAW_DEBUG
+
+	FVector TraceVec = GetActorForwardVector() * AttackRange;
+	FVector Center = GetActorLocation() + TraceVec * 0.5f;
+	float HalfHeight = AttackRange * 0.5f + AttackRadius;
+	FQuat CapsuleRot = FRotationMatrix::MakeFromZ(GetActorForwardVector()).ToQuat();
+	FColor DrawColor = bResult ? FColor::Green : FColor::Red;
+	float DebugLifeTime = 5.0f;
+	
+	DrawDebugCapsule(GetWorld(),
+		Center,
+		HalfHeight,
+		AttackRadius,
+		CapsuleRot,
+		DrawColor,
+		false,
+		DebugLifeTime);
+#endif
 
 	if (bResult)
 	{
 		if (HitResult.Actor.IsValid())
 		{
 			ABLOG(Warning, TEXT("Hit Actor Name : %s"), *HitResult.Actor->GetName());
+			FDamageEvent DamageEvent;
+			HitResult.Actor->TakeDamage(50.0f, DamageEvent, GetController(), this);
 		}
 	}
+
+
 }
