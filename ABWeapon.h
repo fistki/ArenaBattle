@@ -2,7 +2,7 @@
 
 #pragma once
 
-#include "CoreMinimal.h"
+#include "ArenaBattle.h"
 #include "GameFramework/Actor.h"
 #include "ABWeapon.generated.h"
 
