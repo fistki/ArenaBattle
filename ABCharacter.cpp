@@ -98,7 +98,7 @@ void AABCharacter::SetControlMode(EControlMode NewControlMode)
 		bUseControllerRotationYaw = false;				// 회전을 부드럽게 하기 위해 꺼준다.
 		GetCharacterMovement()->bUseControllerDesiredRotation = false;
 		GetCharacterMovement()->bOrientRotationToMovement = true;	// 이제 캐릭터가 움직이는 방향으로 캐릭터가 자동으로 회전합니다.
-		GetCharacterMovement()->RotationRate = FRotator(0.0f, 360.0f, 0.0f);	// 캐릭터의 회전속도를 설정합니다.
+		GetCharacterMovement()->RotationRate = FRotator(0.0f, 720.0f, 0.0f);	// 캐릭터의 회전속도를 설정합니다.
 		break;
 	case EControlMode::DIABLO:
 		//SpringArm->TargetArmLength = 800.0f;	
@@ -113,7 +113,13 @@ void AABCharacter::SetControlMode(EControlMode NewControlMode)
 		bUseControllerRotationYaw = false;
 		GetCharacterMovement()->bUseControllerDesiredRotation = true;
 		GetCharacterMovement()->bOrientRotationToMovement = false;
-		GetCharacterMovement()->RotationRate = FRotator(0.0f, 360.0f, 0.0f);
+		GetCharacterMovement()->RotationRate = FRotator(0.0f, 720.0f, 0.0f);
+		break;
+	case EControlMode::NPC:
+		bUseControllerRotationYaw = false;
+		GetCharacterMovement()->bUseControllerDesiredRotation = false;
+		GetCharacterMovement()->bOrientRotationToMovement = true;
+		GetCharacterMovement()->RotationRate = FRotator(0.0f, 480.0f, 0.0f);
 		break;
 	}
 }
@@ -195,6 +201,22 @@ float AABCharacter::TakeDamage(float DamageAmount, struct FDamageEvent const& Da
 	
 	CharacterStat->SetDamage(FinalDamage);
 	return FinalDamage;
+}
+
+void AABCharacter::PossessedBy(AController* NewController)
+{
+	Super::PossessedBy(NewController);
+
+	if (IsPlayerControlled())
+	{
+		SetControlMode(EControlMode::DIABLO);
+		GetCharacterMovement()->MaxWalkSpeed = 600.0f;
+	}
+	else
+	{
+		SetControlMode(EControlMode::NPC);
+		GetCharacterMovement()->MaxWalkSpeed = 300.0f;
+	}
 }
 
 // Called to bind functionality to input
@@ -302,6 +324,7 @@ void AABCharacter::OnAttackMontageEnded(UAnimMontage* Montage, bool bInterrupted
 	ABCHECK(CurrentCombo > 0);
 	IsAttacking = false;
 	AttackEndComboState();
+	OnAttackEnd.Broadcast();
 }
 
 void  AABCharacter::AttackStartComboState()

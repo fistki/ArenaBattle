@@ -4,18 +4,17 @@
 
 #include "ArenaBattle.h"
 #include "BehaviorTree/BTTaskNode.h"
-#include "BTTask_FindPatrolPos.generated.h"
+#include "BTTask_TurnToTarget.generated.h"
 
 /**
  * 
  */
 UCLASS()
-class ARENABATTLE_API UBTTask_FindPatrolPos : public UBTTaskNode
+class ARENABATTLE_API UBTTask_TurnToTarget : public UBTTaskNode
 {
 	GENERATED_BODY()
 	
 public:
-	UBTTask_FindPatrolPos();
-	
+	UBTTask_TurnToTarget();
 	virtual EBTNodeResult::Type ExecuteTask(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory) override;
 };
