@@ -10,7 +10,8 @@
 #include "Components/WidgetComponent.h"
 #include "ABAIController.h"
 #include "ABCharacterSetting.h"
-#include "ABGameInstance.h"
+#include "Engine/AssetManager.h"
+
 
 // Sets default values
 AABCharacter::AABCharacter()
@@ -76,26 +77,21 @@ AABCharacter::AABCharacter()
 void AABCharacter::BeginPlay()
 {
 	Super::BeginPlay();
-	/*
+	
 	auto CharacterWidget = Cast<UABCharacterWidget>(HPBarWidget->GetUserWidgetObject());
 	if (nullptr != CharacterWidget)
 	{
 		CharacterWidget->BindCharacterStat(CharacterStat);
 	}
-	*/
+	
 	
 	if (!IsPlayerControlled())	// NPC¿œ∂ß
 	{
 		auto DefaultSetting = GetDefault<UABCharacterSetting>();
 		int32 RandIndex = FMath::RandRange(0, DefaultSetting->CharacterAssets.Num() - 1);
 		CharacterAssetToLoad = DefaultSetting->CharacterAssets[RandIndex];
-
-		auto ABGameInstance = Cast<UABGameInstance>(GetGameInstance());
-		if (nullptr != ABGameInstance)
-		{
-			AssetStreamingHandle = ABGameInstance->StreamableManager.RequestAsyncLoad
-			(CharacterAssetToLoad, FStreamableDelegate::CreateUObject(this, &AABCharacter::OnAssetLoadCompleted));
-		}
+		AssetStreamingHandle = UAssetManager::GetStreamableManager().RequestAsyncLoad
+		(CharacterAssetToLoad, FStreamableDelegate::CreateUObject(this, &AABCharacter::OnAssetLoadCompleted));
 	}
 }
 
