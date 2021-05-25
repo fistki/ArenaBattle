@@ -4,9 +4,10 @@
 #include "ABPlayerState.h"
 #include "ABGameInstance.h"
 #include "ABSaveGame.h"
+#include "ABCharacter.h"
 
 AABPlayerState::AABPlayerState()
-	: GameScore(0), GameHighScore(0), CharacterLevel(1), Exp(0), SaveSlotName(TEXT("Player1"))
+	: GameScore(0), GameHighScore(0), CharacterLevel(1), Exp(0), CharacterIndex(0), SaveSlotName(TEXT("Player1"))
 {
 }
 
@@ -25,6 +26,11 @@ int32 AABPlayerState::GetCharacterLevel() const
 	return CharacterLevel;
 }
 
+int32 AABPlayerState::GetCharacterIndex() const
+{
+	return CharacterIndex;
+}
+
 float AABPlayerState::GetExpRatio() const
 {
 	if (CurrentStatData->NextExp <= KINDA_SMALL_NUMBER)
@@ -35,6 +41,11 @@ float AABPlayerState::GetExpRatio() const
 	float Result = (float)Exp / (float)CurrentStatData->NextExp;
 	ABLOG(Warning, TEXT("Ratio : %f, Current : %d, Next : %d"), Result, Exp, CurrentStatData->NextExp);
 	return Result;
+}
+
+float AABPlayerState::GetMaxHP() const
+{
+	return CurrentStatData->MaxHP;
 }
 
 bool AABPlayerState::AddExp(int32 IncomeExp)
@@ -82,6 +93,7 @@ void AABPlayerState::InitPlayerData()
 	GameScore = 0;
 	GameHighScore = ABSaveGame->HighScore;
 	Exp = ABSaveGame->Exp;
+	CharacterIndex = ABSaveGame->CharacterIndex;
 	SavePlayerData();
 }
 
@@ -92,6 +104,7 @@ void  AABPlayerState::SavePlayerData()
 	NewPlayerData->Level = CharacterLevel;
 	NewPlayerData->Exp = Exp;
 	NewPlayerData->HighScore = GameHighScore;
+	NewPlayerData->CharacterIndex = CharacterIndex;
 
 	if (!UGameplayStatics::SaveGameToSlot(NewPlayerData, SaveSlotName, 0))
 	{

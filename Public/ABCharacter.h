@@ -52,7 +52,10 @@ public:
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 	bool CanSetWeapon();
 	void SetWeapon(class AABWeapon* NewWeapon);	// 전방 선언
-	void Attack();								// AIController에서 접근하기 위해 public 선언
+	void Attack();		// AIController에서 접근하기 위해 public 선언
+
+	void SetHP(float NewHP);
+	void AddHP(float AddHP);
 
 public:
 	UPROPERTY(VisibleAnywhere, Category = Weapon)

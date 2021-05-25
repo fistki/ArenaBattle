@@ -156,7 +156,7 @@ void AABCharacter::SetCharacterState(ECharacterState NewState)
 
 		if (bIsPlayer)
 		{
-			DisableInput(ABPlayerController);
+			ABPlayerController->ShowResultUI();
 		}
 		else
 		{
@@ -217,7 +217,9 @@ void AABCharacter::BeginPlay()
 
 	if (bIsPlayer)
 	{
-		AssetIndex = 4;
+		auto ABPlayerState = Cast<AABPlayerState>(GetPlayerState());
+		ABCHECK(nullptr != ABPlayerState);
+		AssetIndex = ABPlayerState->GetCharacterIndex();
 	}
 	else
 	{
@@ -589,4 +591,14 @@ void AABCharacter::OnAssetLoadCompleted()
 	GetMesh()->SetSkeletalMesh(AssetLoaded); 
 
 	SetCharacterState(ECharacterState::READY);
+}
+
+void AABCharacter::SetHP(float NewHP)
+{
+	CharacterStat->SetHP(NewHP);
+}
+
+void AABCharacter::AddHP(float AddHP)
+{
+	CharacterStat->AddHP(AddHP);
 }

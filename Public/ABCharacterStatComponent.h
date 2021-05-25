@@ -32,6 +32,7 @@ public:
 	void SetNewLevel(int32 level);
 	void SetDamage(float NewDamage);
 	void SetHP(float NewHP);
+	void AddHP(float AddHP);
 	float GetAttack();
 	float GetHPRatio();
 	int32 GetDropExp() const;
