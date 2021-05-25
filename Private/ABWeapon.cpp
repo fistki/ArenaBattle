@@ -2,6 +2,8 @@
 
 
 #include "ABWeapon.h"
+#include "ABWeaponSetting.h"
+#include "Engine/AssetManager.h"
 
 // Sets default values
 AABWeapon::AABWeapon()
@@ -20,19 +22,51 @@ AABWeapon::AABWeapon()
 	}
 
 	Weapon->SetCollisionProfileName(TEXT("NoCollision"));
+
+	AttackRange = 150.0f;
+	AttackDamageMax = 10.0f;
+	AttackDamageMin = -2.5f;
+	AttackModifierMax = 1.25f;
+	AttackModifierMin = 0.85f;
 }
 
 // Called when the game starts or when spawned
 void AABWeapon::BeginPlay()
 {
 	Super::BeginPlay();
-	
+
+	auto DefaultSetting = GetDefault<UABWeaponSetting>();
+	AssetIndex = FMath::RandRange(0, DefaultSetting->WeaponAssets.Num() - 1);
+	WeaponAssetToLoad = DefaultSetting->WeaponAssets[AssetIndex];
+	AssetStreamingHandle = UAssetManager::GetStreamableManager().RequestAsyncLoad
+	(WeaponAssetToLoad, FStreamableDelegate::CreateUObject(this, &AABWeapon::OnAssetLoadCompleted));
+
+	AttackDamage = FMath::RandRange(AttackDamageMin, AttackDamageMax);
+	AttackModifier = FMath::RandRange(AttackModifierMin, AttackModifierMax);
+
+	ABLOG(Warning, TEXT("Weapon Damage : %f, Modifier : %f"), AttackDamage, AttackModifier);
 }
 
-// Called every frame
-void AABWeapon::Tick(float DeltaTime)
+
+float AABWeapon::GetAttackRange() const
 {
-	Super::Tick(DeltaTime);
-
+	return AttackRange;
 }
 
+float AABWeapon::GetAttackDamage() const
+{
+	return AttackDamage;
+}
+
+float AABWeapon::GetAttackModifier() const
+{
+	return AttackModifier;
+}
+
+void AABWeapon::OnAssetLoadCompleted()
+{
+	USkeletalMesh* AssetLoaded = Cast<USkeletalMesh>(AssetStreamingHandle->GetLoadedAsset());
+	AssetStreamingHandle.Reset();
+	ABCHECK(nullptr != AssetLoaded);
+	Weapon->SetSkeletalMesh(AssetLoaded);
+}
